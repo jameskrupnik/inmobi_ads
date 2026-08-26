@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Merged into the consuming app. ACCESS_NETWORK_STATE is what lets the
+         InMobi SDK report NETWORK_UNREACHABLE instead of timing out. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+</manifest>
