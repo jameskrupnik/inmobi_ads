@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
 Rewarded video, interstitial and banner ads from InMobi on Android and iOS,
 integrated directly against the native SDKs with no mediation layer.
                        DESC
-  s.homepage         = 'https://github.com/illumination-development/inmobi_ads'
+  s.homepage         = 'https://github.com/jameskrupnik/inmobi_ads'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Illumination Development' => 'james.krupnik@illuminationdevelopment.com' }
   s.source           = { :path => '.' }

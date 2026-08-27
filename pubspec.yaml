@@ -3,8 +3,8 @@ description: >-
   Direct Flutter integration for the InMobi advertising SDK — rewarded video,
   interstitial and banner ads on Android and iOS, with no mediation layer.
 version: 0.1.0
-repository: https://github.com/illumination-development/inmobi_ads
-issue_tracker: https://github.com/illumination-development/inmobi_ads/issues
+repository: https://github.com/jameskrupnik/inmobi_ads
+issue_tracker: https://github.com/jameskrupnik/inmobi_ads/issues
 
 environment:
   sdk: ^3.6.0
