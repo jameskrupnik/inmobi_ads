@@ -21,3 +21,6 @@ ios/Flutter/Flutter.podspec
 # IDE
 .idea/
 .vscode/
+
+# adopt.sh rollback backup (local only)
+analysis_options.yaml.pre-standard
