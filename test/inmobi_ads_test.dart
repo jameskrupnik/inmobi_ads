@@ -10,7 +10,8 @@ void main() {
 
   /// Delivers a native event the way the plugin does, through the channel's own
   /// incoming path, so the routing under test is the real one.
-  Future<void> emit(int adId, String event, [Map<String, Object?> extra = const {}]) {
+  Future<void> emit(int adId, String event,
+      [Map<String, Object?> extra = const {}]) {
     return TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .handlePlatformMessage(
       'inmobi_ads',
@@ -176,14 +177,16 @@ void main() {
   });
 
   group('InMobiReward', () {
-    test('reads a string amount, which one platform sends instead of a number', () {
-      final reward = InMobiReward.fromMap({'coins': '25'});
+    test('reads a string amount, which one platform sends instead of a number',
+        () {
+      final reward = InMobiReward.fromMap(const {'coins': '25'});
       expect(reward.amount, 25);
       expect(reward.name, 'coins');
     });
 
-    test('is empty rather than throwing when the placement configured nothing', () {
-      final reward = InMobiReward.fromMap({});
+    test('is empty rather than throwing when the placement configured nothing',
+        () {
+      final reward = InMobiReward.fromMap(const {});
       expect(reward.amount, 0);
       expect(reward.name, '');
     });

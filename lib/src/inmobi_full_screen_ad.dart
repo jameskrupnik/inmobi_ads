@@ -74,7 +74,8 @@ abstract class InMobiFullScreenAd {
   bool _disposed = false;
 
   /// Events for an ad that has loaded. Set this before calling [show].
-  InMobiFullScreenContentCallback<InMobiFullScreenAd>? fullScreenContentCallback;
+  InMobiFullScreenContentCallback<InMobiFullScreenAd>?
+      fullScreenContentCallback;
 
   void _handleEvent(String event, Map<Object?, Object?> arguments);
 
@@ -192,7 +193,8 @@ class InMobiRewardedAd extends InMobiFullScreenAd {
         final rewards = arguments['rewards'] as Map<Object?, Object?>? ?? {};
         _onUserEarnedReward?.call(this, InMobiReward.fromMap(rewards));
       default:
-        _dispatchContentEvent(this, fullScreenContentCallback, event, arguments);
+        _dispatchContentEvent(
+            this, fullScreenContentCallback, event, arguments);
     }
   }
 }
@@ -210,7 +212,8 @@ class InMobiInterstitialAd extends InMobiFullScreenAd {
   /// Requests an interstitial ad for [placementId].
   static void load({
     required int placementId,
-    required InMobiFullScreenAdLoadCallback<InMobiInterstitialAd> adLoadCallback,
+    required InMobiFullScreenAdLoadCallback<InMobiInterstitialAd>
+        adLoadCallback,
   }) {
     InMobiAds.instance.debugAssertInitialized('interstitial ad');
     final ad = InMobiInterstitialAd._(
@@ -233,7 +236,8 @@ class InMobiInterstitialAd extends InMobiFullScreenAd {
         _loadCallback.onAdFailedToLoad(InMobiAdError.fromMap(arguments));
         dispose();
       default:
-        _dispatchContentEvent(this, fullScreenContentCallback, event, arguments);
+        _dispatchContentEvent(
+            this, fullScreenContentCallback, event, arguments);
     }
   }
 }
