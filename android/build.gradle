@@ -1,4 +1,4 @@
-group = "com.illuminationdevelopment.inmobi_ads"
+group = "com.jameskrupnik.inmobi_ads"
 version = "0.1.0"
 
 buildscript {
@@ -27,7 +27,7 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
 android {
-    namespace = "com.illuminationdevelopment.inmobi_ads"
+    namespace = "com.jameskrupnik.inmobi_ads"
     compileSdk = 35
 
     compileOptions {

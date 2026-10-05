@@ -11,4 +11,4 @@
 -dontwarn com.google.android.gms.**
 
 # The plugin's own entry points, reached reflectively by the Flutter embedding.
--keep class com.illuminationdevelopment.inmobi_ads.** { *; }
+-keep class com.jameskrupnik.inmobi_ads.** { *; }

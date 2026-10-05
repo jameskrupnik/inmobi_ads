@@ -24,7 +24,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.illuminationdevelopment.inmobi_ads
+        package: com.jameskrupnik.inmobi_ads
         pluginClass: InMobiAdsPlugin
       ios:
         pluginClass: InMobiAdsPlugin

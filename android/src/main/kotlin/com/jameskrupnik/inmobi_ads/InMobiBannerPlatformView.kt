@@ -1,4 +1,4 @@
-package com.illuminationdevelopment.inmobi_ads
+package com.jameskrupnik.inmobi_ads
 
 import android.content.Context
 import android.view.View
