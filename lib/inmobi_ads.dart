@@ -29,14 +29,18 @@ library;
 
 export 'src/inmobi_ad_error.dart' show InMobiAdError;
 export 'src/inmobi_ads_base.dart' show InMobiAds, InMobiLogLevel;
-export 'src/inmobi_banner_ad.dart'
-    show InMobiBannerAd, InMobiBannerListener, InMobiBannerSize;
+export 'src/inmobi_banner_ad.dart' show InMobiBannerAd;
+export 'src/inmobi_banner_listener.dart' show InMobiBannerListener;
+export 'src/inmobi_banner_size.dart' show InMobiBannerSize;
 export 'src/inmobi_consent.dart' show InMobiConsent;
 export 'src/inmobi_full_screen_ad.dart'
     show
         InMobiFullScreenAd,
-        InMobiFullScreenAdLoadCallback,
-        InMobiFullScreenContentCallback,
         InMobiInterstitialAd,
+        InMobiOnUserEarnedReward,
         InMobiRewardedAd;
+export 'src/inmobi_full_screen_ad_load_callback.dart'
+    show InMobiFullScreenAdLoadCallback;
+export 'src/inmobi_full_screen_content_callback.dart'
+    show InMobiFullScreenContentCallback;
 export 'src/inmobi_reward.dart' show InMobiReward;

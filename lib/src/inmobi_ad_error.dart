@@ -7,11 +7,16 @@ import 'package:flutter/foundation.dart';
 /// one switch works on both platforms — `NO_FILL`, `NETWORK_UNREACHABLE`,
 /// `REQUEST_TIMED_OUT`, `SERVER_ERROR`, `INTERNAL_ERROR`, and so on.
 ///
+/// A few codes come from this plugin rather than from InMobi: `NO_ACTIVITY`
+/// when Android has no foreground Activity to present from, and
+/// `UNSUPPORTED` on a platform the plugin does not implement.
+///
 /// Treat an unrecognised [code] as retryable-once and nothing more. The set is
 /// not stable across SDK versions, and matching on [message] is worse — it is
 /// human-facing text InMobi changes freely.
 @immutable
 class InMobiAdError {
+  /// Creates an error with InMobi's status [code] and its [message].
   const InMobiAdError({required this.code, required this.message});
 
   /// Builds an error from the raw platform-channel payload.

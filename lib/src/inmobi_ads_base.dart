@@ -102,15 +102,18 @@ class InMobiAds {
     _initialization = null;
     _initialized = false;
   }
+}
 
-  /// Throws unless the SDK is up, with a message that says which call is
-  /// missing rather than surfacing as a generic load failure.
-  void debugAssertInitialized(String what) {
-    if (_initialized) return;
-    throw StateError(
-      'InMobiAds.instance.initialize() must complete before loading a $what. '
-      'An uninitialised InMobi SDK reports load failures that look exactly '
-      'like no fill, so this is checked here instead.',
-    );
-  }
+/// Throws unless the SDK is up, with a message that says which call is
+/// missing rather than surfacing as a generic load failure.
+///
+/// Package-internal: `lib/inmobi_ads.dart` does not export it. It runs in
+/// release builds too, which is why it is not named `debug…`.
+void ensureInitialized(String what) {
+  if (InMobiAds.instance.isInitialized) return;
+  throw StateError(
+    'InMobiAds.instance.initialize() must complete before loading a $what. '
+    'An uninitialised InMobi SDK reports load failures that look exactly '
+    'like no fill, so this is checked here instead.',
+  );
 }

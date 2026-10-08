@@ -24,3 +24,8 @@ ios/Flutter/Flutter.podspec
 
 # adopt.sh rollback backup (local only)
 analysis_options.yaml.pre-standard
+
+# Swift Package Manager
+.build/
+.swiftpm/
+coverage/

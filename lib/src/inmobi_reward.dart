@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 /// decide the amount in your own code.
 @immutable
 class InMobiReward {
+  /// Creates a reward from the placement's [rewards] map.
   const InMobiReward(this.rewards);
 
   /// Builds a reward from the raw platform-channel payload.

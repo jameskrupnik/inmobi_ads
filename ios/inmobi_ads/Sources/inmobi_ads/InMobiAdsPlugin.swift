@@ -183,15 +183,22 @@ public class InMobiAdsPlugin: NSObject, FlutterPlugin {
     /// Presenting from a controller that is itself covered throws a UIKit
     /// warning and shows nothing, which is easy to hit when an ad is triggered
     /// from a Flutter route shown over a native modal.
+    ///
+    /// The key window of a foreground-active scene is preferred; a scene that
+    /// is merely connected (an iPad's second window in the background, a
+    /// scene mid-teardown) can still own a key window. A controller that is
+    /// already being dismissed is skipped, since presenting on it shows
+    /// nothing and reports nothing.
     private static func topViewController() -> UIViewController? {
-        let root = UIApplication.shared.connectedScenes
+        let scenes = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
+        let active = scenes.filter { $0.activationState == .foregroundActive }
+        let window = (active.isEmpty ? scenes : active)
             .flatMap { $0.windows }
-            .first { $0.isKeyWindow }?
-            .rootViewController
+            .first { $0.isKeyWindow }
 
-        var top = root
-        while let presented = top?.presentedViewController {
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController, !presented.isBeingDismissed {
             top = presented
         }
         return top
@@ -282,20 +289,35 @@ enum InMobiStatus {
         ]
     }
 
-    private static func name(for code: IMStatusCode) -> String {
+    /// `IMRequestStatus` is an `NSError`, so its `code` is a bare `Int` that
+    /// has to be read back into `IMStatusCode`. A value this SDK version does
+    /// not define falls through to `INTERNAL_ERROR`.
+    ///
+    /// Where Android has the same condition under another name, the Android
+    /// name wins; the iOS-only conditions keep their own name, spelled the
+    /// same way.
+    private static func name(for rawCode: Int) -> String {
+        guard let code = IMStatusCode(rawValue: rawCode) else {
+            return "INTERNAL_ERROR"
+        }
         switch code {
-        case .noFill: return "NO_FILL"
         case .networkUnReachable: return "NETWORK_UNREACHABLE"
-        case .requestTimedOut: return "REQUEST_TIMED_OUT"
+        case .noFill: return "NO_FILL"
         case .requestInvalid: return "REQUEST_INVALID"
         case .requestPending: return "REQUEST_PENDING"
-        case .serverError: return "SERVER_ERROR"
+        case .requestTimedOut: return "REQUEST_TIMED_OUT"
+        case .multipleLoadsOnSameInstance: return "REPETITIVE_LOAD"
         case .internalError: return "INTERNAL_ERROR"
+        case .serverError: return "SERVER_ERROR"
         case .adActive: return "AD_ACTIVE"
         case .earlyRefreshRequest: return "EARLY_REFRESH_REQUEST"
-        case .monetizationDisabled: return "MONETIZATION_DISABLED"
-        case .lowMemory: return "LOW_MEMORY"
-        @unknown default: return "INTERNAL_ERROR"
+        case .droppingNetworkRequest: return "DROPPING_NETWORK_REQUEST"
+        case .incorrectPlacementID: return "INCORRECT_PLACEMENT_ID"
+        case .sdkNotInitialised: return "SDK_NOT_INITIALISED"
+        case .invalidBannerframe: return "INVALID_BANNER_FRAME"
+        case .invalidAudioFrame: return "INVALID_AUDIO_FRAME"
+        case .audioDisabled: return "AUDIO_DISABLED"
+        case .audioDeviceVolumeLow: return "DEVICE_AUDIO_LEVEL_LOW"
         }
     }
 }

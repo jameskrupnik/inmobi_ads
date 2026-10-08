@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -5,64 +7,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:inmobi_ads/src/inmobi_ad_error.dart';
 import 'package:inmobi_ads/src/inmobi_ads_base.dart';
+import 'package:inmobi_ads/src/inmobi_banner_listener.dart';
+import 'package:inmobi_ads/src/inmobi_banner_size.dart';
 import 'package:inmobi_ads/src/platform.dart';
-
-/// A banner size, in logical pixels.
-///
-/// InMobi does not enforce a fixed set the way AdMob does — a placement serves
-/// whatever creative sizes it is configured for — but these three are the ones
-/// worth asking for, and a mismatch between the widget's size and the
-/// placement's is the usual reason a banner loads and renders blank.
-@immutable
-class InMobiBannerSize {
-  const InMobiBannerSize({required this.width, required this.height});
-
-  /// 320×50. The standard phone banner.
-  static const InMobiBannerSize banner =
-      InMobiBannerSize(width: 320, height: 50);
-
-  /// 728×90. Tablets only; it will not fit a phone in portrait.
-  static const InMobiBannerSize leaderboard =
-      InMobiBannerSize(width: 728, height: 90);
-
-  /// 300×250. The in-feed rectangle.
-  static const InMobiBannerSize mediumRectangle =
-      InMobiBannerSize(width: 300, height: 250);
-
-  final double width;
-  final double height;
-
-  @override
-  bool operator ==(Object other) =>
-      other is InMobiBannerSize &&
-      other.width == width &&
-      other.height == height;
-
-  @override
-  int get hashCode => Object.hash(width, height);
-
-  @override
-  String toString() => 'InMobiBannerSize(${width}x$height)';
-}
-
-/// Events from an [InMobiBannerAd].
-///
-/// With auto-refresh on — the default — [onAdLoaded] runs again on every
-/// refresh, not just the first. Anything you do here should be idempotent.
-@immutable
-class InMobiBannerListener {
-  const InMobiBannerListener({
-    this.onAdLoaded,
-    this.onAdFailedToLoad,
-    this.onAdImpression,
-    this.onAdClicked,
-  });
-
-  final VoidCallback? onAdLoaded;
-  final void Function(InMobiAdError error)? onAdFailedToLoad;
-  final VoidCallback? onAdImpression;
-  final VoidCallback? onAdClicked;
-}
 
 /// A banner ad, sized by [size] and filled by the native InMobi SDK.
 ///
@@ -72,6 +19,14 @@ class InMobiBannerListener {
 /// you want it to disappear — [InMobiBannerListener.onAdFailedToLoad] is the
 /// signal.
 class InMobiBannerAd extends StatefulWidget {
+  /// Creates a banner for [placementId].
+  ///
+  /// The properties are read once, when the native view is created; changing
+  /// them on a later rebuild has no effect. Give the widget a new [key] to
+  /// load a different placement or size.
+  ///
+  /// Throws a [StateError] when built before [InMobiAds.initialize] has
+  /// completed.
   const InMobiBannerAd({
     required this.placementId,
     this.size = InMobiBannerSize.banner,
@@ -108,7 +63,11 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
   @override
   void initState() {
     super.initState();
-    InMobiAds.instance.debugAssertInitialized('banner ad');
+    ensureInitialized('banner ad');
+    assert(
+      !(widget.refreshInterval?.isNegative ?? false),
+      'refreshInterval must not be negative; pass Duration.zero for off.',
+    );
     _adId = InMobiAdsPlatform.registerAd(_handleEvent);
   }
 
@@ -143,8 +102,20 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
         // the view's context, not whatever Flutter last reported.
         'width': widget.size.width,
         'height': widget.size.height,
-        'refreshIntervalSeconds': widget.refreshInterval?.inSeconds,
+        'refreshIntervalSeconds': _refreshSeconds,
       };
+
+  /// [InMobiBannerAd.refreshInterval] in whole seconds, rounded up.
+  ///
+  /// Rounded up rather than truncated because zero is this package's "off"
+  /// signal: truncating turned a 500 ms request into no refresh at all.
+  int? get _refreshSeconds {
+    final interval = widget.refreshInterval;
+    if (interval == null) return null;
+    final micros = interval.inMicroseconds;
+    return (micros + Duration.microsecondsPerSecond - 1) ~/
+        Duration.microsecondsPerSecond;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +123,9 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
       width: widget.size.width,
       height: widget.size.height,
       child: switch (defaultTargetPlatform) {
-        TargetPlatform.android => _buildAndroidView(),
+        TargetPlatform.android => _buildAndroidView(
+            Directionality.maybeOf(context) ?? TextDirection.ltr,
+          ),
         TargetPlatform.iOS => UiKitView(
             viewType: _viewType,
             creationParams: _creationParams,
@@ -171,7 +144,10 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
   /// Ad creatives are WebViews that need real touch targets and their own
   /// input connection. Virtual display — the cheaper mode — mangles both, which
   /// shows up as banners that render correctly and cannot be tapped.
-  Widget _buildAndroidView() {
+  ///
+  /// [layoutDirection] is the ambient one: creatives are web content, and an
+  /// RTL app should not have its banner forced LTR.
+  Widget _buildAndroidView(TextDirection layoutDirection) {
     return PlatformViewLink(
       viewType: _viewType,
       surfaceFactory: (context, controller) => AndroidViewSurface(
@@ -180,16 +156,16 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
         hitTestBehavior: PlatformViewHitTestBehavior.opaque,
       ),
       onCreatePlatformView: (params) {
-        return PlatformViewsService.initExpensiveAndroidView(
+        final controller = PlatformViewsService.initExpensiveAndroidView(
           id: params.id,
           viewType: _viewType,
-          layoutDirection: TextDirection.ltr,
+          layoutDirection: layoutDirection,
           creationParams: _creationParams,
           creationParamsCodec: const StandardMessageCodec(),
           onFocus: () => params.onFocusChanged(true),
-        )
-          ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
-          ..create();
+        )..addOnPlatformViewCreatedListener(params.onPlatformViewCreated);
+        unawaited(controller.create());
+        return controller;
       },
     );
   }

@@ -22,6 +22,7 @@ typedef InMobiAdEventHandler = void Function(
 /// for an id with no handler is dropped, which is what should happen after
 /// `dispose()`.
 abstract final class InMobiAdsPlatform {
+  /// The method channel shared by every call and every ad event.
   static const MethodChannel channel = MethodChannel('inmobi_ads');
 
   static final Map<int, InMobiAdEventHandler> _handlers =

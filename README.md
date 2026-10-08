@@ -34,6 +34,12 @@ dependencies:
 
 You need an InMobi publisher account, an **Account ID**, and one **placement
 ID per format**, all from [publisher.inmobi.com](https://publisher.inmobi.com).
+The placement ids in the snippets below are the sample id from InMobi's own
+integration docs, not working inventory.
+
+InMobi publishes no shared test placements — nothing like AdMob's test units.
+Test mode is a per-placement switch in the dashboard, for all devices or only
+the ones you list; turn it on before you develop against a placement.
 Monetization stays disabled until InMobi approves the account, and an
 unapproved account returns `NO_FILL` for everything — which looks exactly like
 an empty auction. Check the account status before debugging your integration.
@@ -95,6 +101,12 @@ as `InMobiRewardedAd` works perfectly and simply never reports a reward. If
 
 Ads are single-use. Load a new one to show again, and `dispose()` in every path.
 
+A request the native side refuses outright — on Android, no foreground
+Activity to present from — arrives as `onAdFailedToLoad` with code
+`NO_ACTIVITY`, not as an exception. The same check at `show()` arrives as
+`onAdFailedToShowFullScreenContent`. Android presents from the Activity in the
+foreground at `show()`, not the one the ad was loaded under.
+
 ### Banner
 
 ```dart
@@ -114,7 +126,8 @@ you want that.
 
 With auto-refresh on (the default), `onAdLoaded` runs on **every** refresh, not
 just the first. InMobi's floor is 20 seconds; anything shorter is clamped up
-rather than honoured. Pass `Duration.zero` to get exactly one creative.
+rather than honoured. Pass `Duration.zero` to get exactly one creative; any
+positive interval is rounded up to whole seconds, so it never reads as zero.
 
 ### Consent
 
@@ -151,22 +164,33 @@ If your app already pins any of those, expect to reconcile versions.
 
 ### iOS
 
-Deployment target 13.0. Add InMobi's **SKAdNetwork identifiers** to your
-`Info.plist` or you lose install attribution — InMobi publishes the current list
-in their iOS integration docs. If you show the ATT prompt, do it before
+Deployment target 13.0. Both CocoaPods and Swift Package Manager work: the
+plugin depends on InMobi's `InMobiSDK` pod or on their official
+[`InMobiSDK-Swift-Package`](https://github.com/InMobi/InMobiSDK-Swift-Package),
+whichever your app uses, pinned to 11.4.x in both. InMobi's SPM README asks for
+`-ObjC` in Other Linker Flags; the framework it ships is dynamic, so a Flutter
+app does not need it.
+
+Add InMobi's **SKAdNetwork identifiers** to your `Info.plist` or you lose
+install attribution — InMobi publishes the current list in their iOS
+integration docs. If you show the ATT prompt, do it before
 initializing.
 
-## Status
+## Scope
 
-**Alpha.** The Dart API is settled enough to build against. The native code is
-written against InMobi's published 11.4.1 API surface but **has not yet been
-compiled or run against a live InMobi account** — expect signature drift on
-first build, particularly in the iOS status-code enum and the delegate
-signatures. Issues and PRs welcome; that first-build report is the most useful
-thing you can send.
-
-Not supported yet: native ads, and InMobi's own mediation.
+Rewarded, interstitial and banner, against InMobi SDK 11.4.1 on Android and
+iOS. Native ads and InMobi's own mediation are not covered.
 
 ## License
 
-MIT
+This plugin is MIT — see [LICENSE](LICENSE). That covers the Dart, Kotlin and
+Swift in this package and nothing else.
+
+**The InMobi SDK is not part of this package and is not MIT.** It is
+proprietary software owned by InMobi, and the plugin does not bundle it: your
+app's build downloads it from Maven Central, CocoaPods or InMobi's Swift
+package. Building with it binds you to the
+[InMobi SDK End-User License Agreement](https://support.inmobi.com/monetize/sdk-documentation/inmobi-sdk-license)
+— among other things, it forbids reverse engineering the SDK and makes keeping
+it up to date your responsibility — and serving ads binds you to InMobi's
+publisher terms. Read both before you ship.

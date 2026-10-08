@@ -10,6 +10,7 @@ import com.inmobi.ads.listeners.BannerAdEventListener
 import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
+import kotlin.math.roundToInt
 
 /** Builds the [InMobiBannerPlatformView]s that back `InMobiBannerAd`. */
 internal class InMobiBannerViewFactory(
@@ -27,11 +28,10 @@ internal class InMobiBannerViewFactory(
  *
  * ### Sizing
  *
- * InMobi's Android banner takes its size from its layout params **in device
- * pixels**, not from a size constant the way AdMob does. Dart sends logical
- * pixels and the conversion happens here, against the density of the context
- * the view is actually attached to — reusing a density Flutter reported earlier
- * puts the banner at the wrong size on a second display or after a fold.
+ * The view's layout params are **device pixels**, converted here from the
+ * logical pixels Dart sends against the density of the context the view is
+ * actually attached to. The ad size InMobi requests is set separately, in dp,
+ * through `setBannerSize`.
  *
  * A banner whose layout params do not match the creative size the placement
  * serves renders blank rather than scaling, which is the usual cause of a
@@ -49,8 +49,8 @@ internal class InMobiBannerPlatformView(
     init {
         val placementId = (params["placementId"] as? Number)?.toLong()
         val density = context.resources.displayMetrics.density
-        val widthPx = ((params["width"] as? Number)?.toFloat() ?: 320f) * density
-        val heightPx = ((params["height"] as? Number)?.toFloat() ?: 50f) * density
+        val widthDp = (params["width"] as? Number)?.toFloat() ?: 320f
+        val heightDp = (params["height"] as? Number)?.toFloat() ?: 50f
 
         banner = if (placementId == null) {
             sendEvent(
@@ -77,7 +77,16 @@ internal class InMobiBannerPlatformView(
                 // terms; InMobi's default axis rotation on refresh fights it.
                 setAnimationType(InMobiBanner.AnimationType.ANIMATION_OFF)
 
-                layoutParams = ViewGroup.LayoutParams(widthPx.toInt(), heightPx.toInt())
+                layoutParams = ViewGroup.LayoutParams(
+                    (widthDp * density).roundToInt(),
+                    (heightDp * density).roundToInt(),
+                )
+                // Without this InMobi derives the ad size back from the layout
+                // params, dividing by a display density it caches once per
+                // process — which is not the density of this context after a
+                // display-size change or on a second display. Stating the size
+                // in dp leaves nothing to derive.
+                setBannerSize(widthDp.roundToInt(), heightDp.roundToInt())
                 load()
             }
         }

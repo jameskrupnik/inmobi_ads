@@ -14,6 +14,10 @@ import 'package:flutter/foundation.dart';
 /// consent yourself, or when you need to be certain what was sent.
 @immutable
 class InMobiConsent {
+  /// Creates a consent signal for a user.
+  ///
+  /// Leave [consentGiven] and [consentString] `null` when you do not have
+  /// them; absent fields are omitted rather than sent as `false`.
   const InMobiConsent({
     required this.gdprApplies,
     this.consentGiven,

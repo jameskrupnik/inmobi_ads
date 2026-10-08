@@ -3,36 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:inmobi_ads/inmobi_ads.dart';
 import 'package:inmobi_ads/src/platform.dart';
 
+import 'support/fake_channel.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final log = <MethodCall>[];
+  const emit = emitAdEvent;
 
-  /// Delivers a native event the way the plugin does, through the channel's own
-  /// incoming path, so the routing under test is the real one.
-  Future<void> emit(int adId, String event,
-      [Map<String, Object?> extra = const {}]) {
-    return TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .handlePlatformMessage(
-      'inmobi_ads',
-      const StandardMethodCodec().encodeMethodCall(
-        MethodCall('onAdEvent', {...extra, 'adId': adId, 'event': event}),
-      ),
-      (_) {},
-    );
-  }
-
-  setUp(() async {
-    log.clear();
-    InMobiAdsPlatform.reset();
-    InMobiAds.instance.debugReset();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
-      log.add(call);
-      return null;
-    });
-    await InMobiAds.instance.initialize(accountId: 'test-account');
-  });
+  setUp(() => setUpInMobiChannel(log));
 
   group('initialize', () {
     test('sends the account id and log level', () {
@@ -44,6 +23,63 @@ void main() {
     test('is idempotent — a second call does not re-initialize', () async {
       await InMobiAds.instance.initialize(accountId: 'other-account');
       expect(log, hasLength(1));
+    });
+  });
+
+  group('InMobiAds', () {
+    test('a failed start is not cached, so the next call retries', () async {
+      InMobiAds.instance.debugReset();
+      var attempts = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
+        attempts++;
+        if (attempts == 1) throw PlatformException(code: 'INIT_FAILED');
+        return null;
+      });
+
+      expect(await InMobiAds.instance.initialize(accountId: 'a'), isFalse);
+      expect(InMobiAds.instance.isInitialized, isFalse);
+      expect(await InMobiAds.instance.initialize(accountId: 'a'), isTrue);
+      expect(InMobiAds.instance.isInitialized, isTrue);
+    });
+
+    test('reports false where the plugin is not registered', () async {
+      InMobiAds.instance.debugReset();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(InMobiAdsPlatform.channel, null);
+
+      expect(await InMobiAds.instance.initialize(accountId: 'a'), isFalse);
+    });
+
+    test('initialize carries consent gathered before start', () async {
+      InMobiAds.instance.debugReset();
+      log.clear();
+
+      await InMobiAds.instance.initialize(
+        accountId: 'a',
+        consent: const InMobiConsent.notApplicable(),
+      );
+
+      expect(
+        log.single.arguments,
+        containsPair('consent', {'gdprApplies': false}),
+      );
+    });
+
+    test('setConsent sends the normalised consent map', () async {
+      await InMobiAds.instance.setConsent(
+        const InMobiConsent(gdprApplies: true, consentGiven: false),
+      );
+
+      expect(log.last.method, 'setConsent');
+      expect(log.last.arguments, {'gdprApplies': true, 'consentGiven': false});
+    });
+
+    test('setLogLevel sends the level by name', () async {
+      await InMobiAds.instance.setLogLevel(InMobiLogLevel.debug);
+
+      expect(log.last.method, 'setLogLevel');
+      expect(log.last.arguments, {'logLevel': 'debug'});
     });
   });
 
@@ -123,6 +159,30 @@ void main() {
       expect(order, ['rewarded:coins=10', 'dismissed']);
     });
 
+    test('a refused second show keeps the first reward callback', () async {
+      // A double-tap on a "watch ad" button calls show() twice. The second
+      // call is a no-op, so it must not replace — or, passing nothing, clear —
+      // the callback the user is about to earn a reward through.
+      final rewards = <String>[];
+      late InMobiRewardedAd ad;
+      InMobiRewardedAd.load(
+        placementId: 1,
+        adLoadCallback: InMobiFullScreenAdLoadCallback(
+          onAdLoaded: (loaded) => ad = loaded,
+          onAdFailedToLoad: (_) => fail('should not fail'),
+        ),
+      );
+      await emit(0, 'loaded');
+
+      await ad.show(onUserEarnedReward: (_, __) => rewards.add('first'));
+      await expectLater(ad.show(), throwsAssertionError);
+      await emit(0, 'rewards', {
+        'rewards': {'coins': 10},
+      });
+
+      expect(rewards, ['first']);
+    });
+
     test('a disposed ad stops receiving events', () async {
       var dismissals = 0;
       late InMobiRewardedAd ad;
@@ -160,58 +220,63 @@ void main() {
 
       expect(loadedPlacements, [222]);
     });
-  });
-
-  group('InMobiInterstitialAd', () {
-    test('load does not ask for a rewarded placement', () {
-      InMobiInterstitialAd.load(
-        placementId: 7,
+    test('a content callback typed to the ad receives the ad, uncast',
+        () async {
+      InMobiRewardedAd? dismissed;
+      late InMobiRewardedAd ad;
+      InMobiRewardedAd.load(
+        placementId: 1,
         adLoadCallback: InMobiFullScreenAdLoadCallback(
-          onAdLoaded: (_) {},
-          onAdFailedToLoad: (_) {},
+          onAdLoaded: (loaded) => ad = loaded,
+          onAdFailedToLoad: (_) => fail('should not fail'),
         ),
       );
+      await emit(0, 'loaded');
 
-      expect(log.last.arguments, containsPair('rewarded', false));
-    });
-  });
-
-  group('InMobiReward', () {
-    test('reads a string amount, which one platform sends instead of a number',
-        () {
-      final reward = InMobiReward.fromMap(const {'coins': '25'});
-      expect(reward.amount, 25);
-      expect(reward.name, 'coins');
-    });
-
-    test('is empty rather than throwing when the placement configured nothing',
-        () {
-      final reward = InMobiReward.fromMap(const {});
-      expect(reward.amount, 0);
-      expect(reward.name, '');
-    });
-  });
-
-  group('InMobiConsent', () {
-    test('omits absent fields so native cannot read a null as a false', () {
-      expect(
-        const InMobiConsent.notApplicable().toMap(),
-        {'gdprApplies': false},
+      ad.fullScreenContentCallback =
+          InMobiFullScreenContentCallback<InMobiRewardedAd>(
+        onAdDismissedFullScreenContent: (ad) => dismissed = ad,
       );
+      await emit(0, 'dismissed');
+
+      expect(dismissed, same(ad));
     });
 
-    test('carries the IAB string when there is one', () {
-      final map = const InMobiConsent(
-        gdprApplies: true,
-        consentGiven: true,
-        consentString: 'CPX',
-      ).toMap();
-
-      expect(map, {
-        'gdprApplies': true,
-        'consentGiven': true,
-        'consentString': 'CPX',
+    test('a request native refuses reaches onAdFailedToLoad', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
+        if (call.method == 'loadFullScreenAd') {
+          throw PlatformException(code: 'NO_ACTIVITY', message: 'none');
+        }
+        return null;
       });
+
+      InMobiAdError? error;
+      InMobiRewardedAd.load(
+        placementId: 1,
+        adLoadCallback: InMobiFullScreenAdLoadCallback(
+          onAdLoaded: (_) => fail('should not load'),
+          onAdFailedToLoad: (e) => error = e,
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(error, const InMobiAdError(code: 'NO_ACTIVITY', message: 'none'));
+    });
+
+    test('loading before initialize throws a StateError', () {
+      InMobiAds.instance.debugReset();
+
+      expect(
+        () => InMobiRewardedAd.load(
+          placementId: 1,
+          adLoadCallback: InMobiFullScreenAdLoadCallback(
+            onAdLoaded: (_) {},
+            onAdFailedToLoad: (_) {},
+          ),
+        ),
+        throwsStateError,
+      );
     });
   });
 }

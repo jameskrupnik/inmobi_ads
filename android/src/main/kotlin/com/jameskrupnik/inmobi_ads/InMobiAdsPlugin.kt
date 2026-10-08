@@ -168,18 +168,31 @@ class InMobiAdsPlugin : FlutterPlugin, ActivityAware, MethodChannel.MethodCallHa
 
         mainHandler.post {
             val ad = fullScreenAds[adId]
+            // Read at show time, not load time: the Activity the ad was built
+            // with can be gone by now. InMobiInterstitial.show() with no
+            // argument passes a null Activity down and falls back to the one
+            // it was constructed with; show(activity) presents from the live one.
+            val presenter = activity
             when {
                 ad == null -> sendEvent(
                     adId,
                     "displayFailed",
                     mapOf("code" to "INTERNAL_ERROR", "message" to "Ad $adId is gone"),
                 )
-                !ad.isReady -> sendEvent(
+                presenter == null -> sendEvent(
+                    adId,
+                    "displayFailed",
+                    mapOf(
+                        "code" to "NO_ACTIVITY",
+                        "message" to "No foreground Activity to present ad $adId from",
+                    ),
+                )
+                !ad.isReady() -> sendEvent(
                     adId,
                     "displayFailed",
                     mapOf("code" to "INTERNAL_ERROR", "message" to "Ad $adId is not ready"),
                 )
-                else -> ad.show()
+                else -> ad.show(presenter)
             }
         }
         result.success(null)
