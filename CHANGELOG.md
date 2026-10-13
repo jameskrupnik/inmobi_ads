@@ -4,25 +4,24 @@
 
 First release.
 
-- InMobi SDK 11.4.1 on both platforms
+- InMobi SDK 11.4.1 on Android and iOS, pinned exactly on Gradle, CocoaPods
+  and Swift Package Manager
 - `InMobiAds.initialize`, `setConsent`, `setLogLevel`
-- `InMobiRewardedAd` — load, show, reward callback
-- `InMobiInterstitialAd` — load, show
-- `InMobiBannerAd` — a widget, hybrid composition on Android
-- Status codes normalised to one spelling across platforms
-- R8 keeps shipped in `consumer-rules.pro`, so a consuming app gets them
-  whether or not it references a rules file of its own
-- iOS through CocoaPods or Swift Package Manager, both pinned to 11.4.x
-- A load the native side refuses arrives as `onAdFailedToLoad`, not as an
-  unhandled exception
-- `fullScreenContentCallback` is typed to the ad's own class, so its handlers
-  receive an `InMobiRewardedAd` or `InMobiInterstitialAd` without a cast
+- `InMobiRewardedAd`: load, show, and a reward callback that fires before
+  dismissal and survives a double-tapped show
+- `InMobiInterstitialAd`: load, show
+- `InMobiBannerAd`: a widget, hybrid composition on Android, with a
+  configurable refresh interval (sub-second values round up, zero turns
+  auto-refresh off)
+- `fullScreenContentCallback` typed to the ad's own class, so handlers get an
+  `InMobiRewardedAd` or `InMobiInterstitialAd` without a cast
+- Status codes in one spelling on both platforms
+- Refused loads arrive as `onAdFailedToLoad`, and refused shows as
+  `onAdFailedToShowFullScreenContent`, rather than as unhandled exceptions
+- Android presents full-screen ads from the foreground Activity at `show()`
+  and reports `NO_ACTIVITY` when there is none
+- The Android banner follows the ambient text direction and states its ad
+  size to InMobi in dp
+- R8 keeps ship in `consumer-rules.pro`, so an app gets them whether or not
+  it references a rules file of its own
 - A runnable example app
-- Android presents a full-screen ad from the Activity in the foreground at
-  `show()`, and reports `NO_ACTIVITY` there if there is none
-- A second `show()` on a rewarded ad no longer replaces the first call's
-  reward callback
-- A sub-second banner `refreshInterval` rounds up instead of turning
-  auto-refresh off; a negative one asserts
-- The Android banner takes the ambient text direction instead of forcing LTR,
-  and states its ad size to InMobi in dp
