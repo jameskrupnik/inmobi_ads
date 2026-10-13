@@ -98,6 +98,17 @@ final class InMobiBannerPlatformView: NSObject, FlutterPlatformView, IMBannerDel
         return container
     }
 
+    /// Flutter drops the platform view when `InMobiBannerAd` leaves the tree,
+    /// and there is no dispose callback on iOS, so this is the counterpart of
+    /// Android's `destroy()`. Without it the banner keeps auto-refreshing off
+    /// screen and can still call back for a widget that is gone.
+    deinit {
+        guard let banner = banner else { return }
+        banner.delegate = nil
+        banner.shouldAutoRefresh(false)
+        banner.removeFromSuperview()
+    }
+
     // MARK: - IMBannerDelegate
 
     func bannerDidFinishLoading(_ banner: IMBanner) {
