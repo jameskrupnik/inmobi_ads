@@ -32,6 +32,9 @@ dependencies:
   inmobi_ads: ^0.1.0
 ```
 
+Flutter 3.44 or newer. The iOS Swift package depends on the `FlutterFramework`
+package that Flutter generates from 3.44 on.
+
 You need an InMobi publisher account, an **Account ID**, and one **placement
 ID per format**, all from [publisher.inmobi.com](https://publisher.inmobi.com).
 The placement ids in the snippets below are the sample id from InMobi's own

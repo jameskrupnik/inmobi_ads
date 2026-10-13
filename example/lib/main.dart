@@ -17,8 +17,9 @@ part 'home_page.dart';
 /// switch in the dashboard; turn it on for these before running.
 const accountId = String.fromEnvironment('INMOBI_ACCOUNT_ID');
 const bannerPlacement = int.fromEnvironment('INMOBI_BANNER_PLACEMENT');
-const interstitialPlacement =
-    int.fromEnvironment('INMOBI_INTERSTITIAL_PLACEMENT');
+const interstitialPlacement = int.fromEnvironment(
+  'INMOBI_INTERSTITIAL_PLACEMENT',
+);
 const rewardedPlacement = int.fromEnvironment('INMOBI_REWARDED_PLACEMENT');
 
 void main() => runApp(const ExampleApp());

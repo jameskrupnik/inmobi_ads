@@ -32,10 +32,10 @@ void main() {
       var attempts = 0;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
-        attempts++;
-        if (attempts == 1) throw PlatformException(code: 'INIT_FAILED');
-        return null;
-      });
+            attempts++;
+            if (attempts == 1) throw PlatformException(code: 'INIT_FAILED');
+            return null;
+          });
 
       expect(await InMobiAds.instance.initialize(accountId: 'a'), isFalse);
       expect(InMobiAds.instance.isInitialized, isFalse);
@@ -174,7 +174,7 @@ void main() {
       );
       await emit(0, 'loaded');
 
-      await ad.show(onUserEarnedReward: (_, __) => rewards.add('first'));
+      await ad.show(onUserEarnedReward: (_, _) => rewards.add('first'));
       await expectLater(ad.show(), throwsAssertionError);
       await emit(0, 'rewards', {
         'rewards': {'coins': 10},
@@ -220,36 +220,38 @@ void main() {
 
       expect(loadedPlacements, [222]);
     });
-    test('a content callback typed to the ad receives the ad, uncast',
-        () async {
-      InMobiRewardedAd? dismissed;
-      late InMobiRewardedAd ad;
-      InMobiRewardedAd.load(
-        placementId: 1,
-        adLoadCallback: InMobiFullScreenAdLoadCallback(
-          onAdLoaded: (loaded) => ad = loaded,
-          onAdFailedToLoad: (_) => fail('should not fail'),
-        ),
-      );
-      await emit(0, 'loaded');
+    test(
+      'a content callback typed to the ad receives the ad, uncast',
+      () async {
+        InMobiRewardedAd? dismissed;
+        late InMobiRewardedAd ad;
+        InMobiRewardedAd.load(
+          placementId: 1,
+          adLoadCallback: InMobiFullScreenAdLoadCallback(
+            onAdLoaded: (loaded) => ad = loaded,
+            onAdFailedToLoad: (_) => fail('should not fail'),
+          ),
+        );
+        await emit(0, 'loaded');
 
-      ad.fullScreenContentCallback =
-          InMobiFullScreenContentCallback<InMobiRewardedAd>(
-        onAdDismissedFullScreenContent: (ad) => dismissed = ad,
-      );
-      await emit(0, 'dismissed');
+        ad.fullScreenContentCallback =
+            InMobiFullScreenContentCallback<InMobiRewardedAd>(
+              onAdDismissedFullScreenContent: (ad) => dismissed = ad,
+            );
+        await emit(0, 'dismissed');
 
-      expect(dismissed, same(ad));
-    });
+        expect(dismissed, same(ad));
+      },
+    );
 
     test('a request native refuses reaches onAdFailedToLoad', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
-        if (call.method == 'loadFullScreenAd') {
-          throw PlatformException(code: 'NO_ACTIVITY', message: 'none');
-        }
-        return null;
-      });
+            if (call.method == 'loadFullScreenAd') {
+              throw PlatformException(code: 'NO_ACTIVITY', message: 'none');
+            }
+            return null;
+          });
 
       InMobiAdError? error;
       InMobiRewardedAd.load(

@@ -78,55 +78,59 @@ void main() {
       expect(log.last.method, 'disposeAd');
     });
 
-    test('an ad shown twice, or after dispose, does not reach native',
-        () async {
-      late InMobiInterstitialAd ad;
-      InMobiInterstitialAd.load(
-        placementId: 7,
-        adLoadCallback: InMobiFullScreenAdLoadCallback(
-          onAdLoaded: (loaded) => ad = loaded,
-          onAdFailedToLoad: (_) {},
-        ),
-      );
-      await emit(0, 'loaded');
+    test(
+      'an ad shown twice, or after dispose, does not reach native',
+      () async {
+        late InMobiInterstitialAd ad;
+        InMobiInterstitialAd.load(
+          placementId: 7,
+          adLoadCallback: InMobiFullScreenAdLoadCallback(
+            onAdLoaded: (loaded) => ad = loaded,
+            onAdFailedToLoad: (_) {},
+          ),
+        );
+        await emit(0, 'loaded');
 
-      await ad.show();
-      await expectLater(ad.show(), throwsAssertionError);
-      await ad.dispose();
-      await ad.dispose();
-      await expectLater(ad.show(), throwsAssertionError);
+        await ad.show();
+        await expectLater(ad.show(), throwsAssertionError);
+        await ad.dispose();
+        await ad.dispose();
+        await expectLater(ad.show(), throwsAssertionError);
 
-      expect(
-        log.map((c) => c.method),
-        ['initialize', 'loadFullScreenAd', 'showFullScreenAd', 'disposeAd'],
-      );
-    });
+        expect(
+          log.map((c) => c.method),
+          ['initialize', 'loadFullScreenAd', 'showFullScreenAd', 'disposeAd'],
+        );
+      },
+    );
 
-    test('a show native refuses reaches onAdFailedToShowFullScreenContent',
-        () async {
-      late InMobiInterstitialAd ad;
-      InMobiInterstitialAd.load(
-        placementId: 7,
-        adLoadCallback: InMobiFullScreenAdLoadCallback(
-          onAdLoaded: (loaded) => ad = loaded,
-          onAdFailedToLoad: (_) => fail('should not fail'),
-        ),
-      );
-      await emit(0, 'loaded');
-      InMobiAdError? error;
-      ad.fullScreenContentCallback = InMobiFullScreenContentCallback(
-        onAdFailedToShowFullScreenContent: (_, e) => error = e,
-      );
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
-        throw PlatformException(code: 'NO_ACTIVITY', message: 'gone');
-      });
+    test(
+      'a show native refuses reaches onAdFailedToShowFullScreenContent',
+      () async {
+        late InMobiInterstitialAd ad;
+        InMobiInterstitialAd.load(
+          placementId: 7,
+          adLoadCallback: InMobiFullScreenAdLoadCallback(
+            onAdLoaded: (loaded) => ad = loaded,
+            onAdFailedToLoad: (_) => fail('should not fail'),
+          ),
+        );
+        await emit(0, 'loaded');
+        InMobiAdError? error;
+        ad.fullScreenContentCallback = InMobiFullScreenContentCallback(
+          onAdFailedToShowFullScreenContent: (_, e) => error = e,
+        );
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
+              throw PlatformException(code: 'NO_ACTIVITY', message: 'gone');
+            });
 
-      await ad.show();
+        await ad.show();
 
-      expect(error!.code, 'NO_ACTIVITY');
-      expect(error!.message, 'gone');
-    });
+        expect(error!.code, 'NO_ACTIVITY');
+        expect(error!.message, 'gone');
+      },
+    );
 
     test('dispose tolerates a native error', () async {
       late InMobiInterstitialAd ad;
@@ -140,8 +144,8 @@ void main() {
       await emit(0, 'loaded');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
-        throw PlatformException(code: 'INVALID_ARGUMENTS');
-      });
+            throw PlatformException(code: 'INVALID_ARGUMENTS');
+          });
 
       await expectLater(ad.dispose(), completes);
     });

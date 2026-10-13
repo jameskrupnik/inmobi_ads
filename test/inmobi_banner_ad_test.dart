@@ -27,9 +27,9 @@ void main() {
   }
 
   Widget host(Widget banner) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Center(child: banner),
-      );
+    textDirection: TextDirection.ltr,
+    child: Center(child: banner),
+  );
 
   setUp(() async {
     platformViewCalls.clear();
@@ -91,13 +91,16 @@ void main() {
           ),
         );
 
-        final create =
-            platformViewCalls.firstWhere((c) => c.method == 'create');
+        final create = platformViewCalls.firstWhere(
+          (c) => c.method == 'create',
+        );
         final arguments = create.arguments as Map<Object?, Object?>;
         expect(arguments['viewType'], 'inmobi_ads/banner');
-        final params = const StandardMessageCodec().decodeMessage(
-          ByteData.sublistView(arguments['params']! as Uint8List),
-        ) as Map<Object?, Object?>;
+        final params =
+            const StandardMessageCodec().decodeMessage(
+                  ByteData.sublistView(arguments['params']! as Uint8List),
+                )
+                as Map<Object?, Object?>;
         expect(params, {
           'adId': 0,
           'placementId': 1471550843416,
@@ -125,8 +128,9 @@ void main() {
       final create = platformViewCalls.lastWhere((c) => c.method == 'create');
       final arguments = create.arguments as Map<Object?, Object?>;
       return const StandardMessageCodec().decodeMessage(
-        ByteData.sublistView(arguments['params']! as Uint8List),
-      ) as Map<Object?, Object?>;
+            ByteData.sublistView(arguments['params']! as Uint8List),
+          )
+          as Map<Object?, Object?>;
     }
 
     testWidgets(
@@ -178,8 +182,9 @@ void main() {
         );
         await tester.pump();
 
-        final create =
-            platformViewCalls.firstWhere((c) => c.method == 'create');
+        final create = platformViewCalls.firstWhere(
+          (c) => c.method == 'create',
+        );
         final arguments = create.arguments as Map<Object?, Object?>;
         // AndroidViewController encodes RTL as 1 (View.LAYOUT_DIRECTION_RTL).
         expect(arguments['direction'], 1);
@@ -195,8 +200,9 @@ void main() {
         );
         await tester.pump();
 
-        final create =
-            platformViewCalls.firstWhere((c) => c.method == 'create');
+        final create = platformViewCalls.firstWhere(
+          (c) => c.method == 'create',
+        );
         final arguments = create.arguments as Map<Object?, Object?>;
         expect(arguments['viewType'], 'inmobi_ads/banner');
         expect(arguments['hybrid'], isTrue);

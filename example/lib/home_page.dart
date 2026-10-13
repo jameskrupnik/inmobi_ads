@@ -32,7 +32,8 @@ class _HomePageState extends State<_HomePage> {
     if (accountId.isEmpty) {
       setState(() {
         _started = false;
-        _log = 'No account id. Pass --dart-define=INMOBI_ACCOUNT_ID=... '
+        _log =
+            'No account id. Pass --dart-define=INMOBI_ACCOUNT_ID=... '
             'and a placement id per format; see the example README.';
       });
       return;

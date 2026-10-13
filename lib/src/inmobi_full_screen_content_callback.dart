@@ -28,7 +28,7 @@ class InMobiFullScreenContentCallback<T extends InMobiFullScreenAd> {
 
   /// Called when the ad could not be shown. Terminal in the abnormal path.
   final void Function(T ad, InMobiAdError error)?
-      onAdFailedToShowFullScreenContent;
+  onAdFailedToShowFullScreenContent;
 
   /// Called when InMobi counts an impression.
   final void Function(T ad)? onAdImpression;

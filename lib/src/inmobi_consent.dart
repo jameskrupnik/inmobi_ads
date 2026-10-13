@@ -29,9 +29,9 @@ class InMobiConsent {
   /// The honest default for traffic you know to be outside the EEA and UK. It
   /// is not a way to opt out of the GDPR for traffic that is inside it.
   const InMobiConsent.notApplicable()
-      : gdprApplies = false,
-        consentGiven = null,
-        consentString = null;
+    : gdprApplies = false,
+      consentGiven = null,
+      consentString = null;
 
   /// Whether the GDPR applies to this user.
   final bool gdprApplies;
@@ -45,10 +45,10 @@ class InMobiConsent {
 
   /// The payload sent across the platform channel.
   Map<String, Object?> toMap() => <String, Object?>{
-        'gdprApplies': gdprApplies,
-        if (consentGiven != null) 'consentGiven': consentGiven,
-        if (consentString != null) 'consentString': consentString,
-      };
+    'gdprApplies': gdprApplies,
+    if (consentGiven != null) 'consentGiven': consentGiven,
+    if (consentString != null) 'consentString': consentString,
+  };
 
   @override
   String toString() =>

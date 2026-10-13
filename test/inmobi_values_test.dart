@@ -15,27 +15,33 @@ void main() {
 
       expect(
         error.hashCode,
-        InMobiAdError.fromMap(const {'code': 'NO_FILL', 'message': 'empty'})
-            .hashCode,
+        InMobiAdError.fromMap(const {
+          'code': 'NO_FILL',
+          'message': 'empty',
+        }).hashCode,
       );
       expect(error.toString(), 'InMobiAdError(NO_FILL): empty');
     });
   });
 
   group('InMobiReward', () {
-    test('reads a string amount, which one platform sends instead of a number',
-        () {
-      final reward = InMobiReward.fromMap(const {'coins': '25'});
-      expect(reward.amount, 25);
-      expect(reward.name, 'coins');
-    });
+    test(
+      'reads a string amount, which one platform sends instead of a number',
+      () {
+        final reward = InMobiReward.fromMap(const {'coins': '25'});
+        expect(reward.amount, 25);
+        expect(reward.name, 'coins');
+      },
+    );
 
-    test('is empty rather than throwing when the placement configured nothing',
-        () {
-      final reward = InMobiReward.fromMap(const {});
-      expect(reward.amount, 0);
-      expect(reward.name, '');
-    });
+    test(
+      'is empty rather than throwing when the placement configured nothing',
+      () {
+        final reward = InMobiReward.fromMap(const {});
+        expect(reward.amount, 0);
+        expect(reward.name, '');
+      },
+    );
 
     test('reads a numeric amount as is, and nothing from a non-number', () {
       expect(InMobiReward.fromMap(const {'coins': 10}).amount, 10);

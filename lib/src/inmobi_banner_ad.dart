@@ -95,15 +95,15 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
   }
 
   Map<String, Object?> get _creationParams => <String, Object?>{
-        'adId': _adId,
-        'placementId': widget.placementId,
-        // Logical pixels. Android needs these in device pixels and converts on
-        // its side, because the density it should use is the one attached to
-        // the view's context, not whatever Flutter last reported.
-        'width': widget.size.width,
-        'height': widget.size.height,
-        'refreshIntervalSeconds': _refreshSeconds,
-      };
+    'adId': _adId,
+    'placementId': widget.placementId,
+    // Logical pixels. Android needs these in device pixels and converts on
+    // its side, because the density it should use is the one attached to
+    // the view's context, not whatever Flutter last reported.
+    'width': widget.size.width,
+    'height': widget.size.height,
+    'refreshIntervalSeconds': _refreshSeconds,
+  };
 
   /// [InMobiBannerAd.refreshInterval] in whole seconds, rounded up.
   ///
@@ -124,13 +124,13 @@ class _InMobiBannerAdState extends State<InMobiBannerAd> {
       height: widget.size.height,
       child: switch (defaultTargetPlatform) {
         TargetPlatform.android => _buildAndroidView(
-            Directionality.maybeOf(context) ?? TextDirection.ltr,
-          ),
+          Directionality.maybeOf(context) ?? TextDirection.ltr,
+        ),
         TargetPlatform.iOS => UiKitView(
-            viewType: _viewType,
-            creationParams: _creationParams,
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
+          viewType: _viewType,
+          creationParams: _creationParams,
+          creationParamsCodec: const StandardMessageCodec(),
+        ),
         // A banner slot on an unsupported platform renders as empty space of
         // the right size rather than throwing, so a desktop debug run of an
         // app that embeds one still lays out correctly.

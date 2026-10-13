@@ -15,16 +15,22 @@ class InMobiBannerSize {
   const InMobiBannerSize({required this.width, required this.height});
 
   /// 320×50. The standard phone banner.
-  static const InMobiBannerSize banner =
-      InMobiBannerSize(width: 320, height: 50);
+  static const InMobiBannerSize banner = InMobiBannerSize(
+    width: 320,
+    height: 50,
+  );
 
   /// 728×90. Tablets only; it will not fit a phone in portrait.
-  static const InMobiBannerSize leaderboard =
-      InMobiBannerSize(width: 728, height: 90);
+  static const InMobiBannerSize leaderboard = InMobiBannerSize(
+    width: 728,
+    height: 90,
+  );
 
   /// 300×250. The in-feed rectangle.
-  static const InMobiBannerSize mediumRectangle =
-      InMobiBannerSize(width: 300, height: 250);
+  static const InMobiBannerSize mediumRectangle = InMobiBannerSize(
+    width: 300,
+    height: 250,
+  );
 
   /// The width, in logical pixels.
   final double width;

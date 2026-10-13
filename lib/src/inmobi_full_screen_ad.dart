@@ -9,10 +9,11 @@ import 'package:inmobi_ads/src/inmobi_reward.dart';
 import 'package:inmobi_ads/src/platform.dart';
 
 /// Called when the user finishes a rewarded video.
-typedef InMobiOnUserEarnedReward = void Function(
-  InMobiRewardedAd ad,
-  InMobiReward reward,
-);
+typedef InMobiOnUserEarnedReward =
+    void Function(
+      InMobiRewardedAd ad,
+      InMobiReward reward,
+    );
 
 /// Shared machinery for the two full-screen formats.
 ///
@@ -52,8 +53,9 @@ abstract class InMobiFullScreenAd {
     }
     _shown = true;
     try {
-      await InMobiAdsPlatform.channel
-          .invokeMethod<void>('showFullScreenAd', {'adId': _adId});
+      await InMobiAdsPlatform.channel.invokeMethod<void>('showFullScreenAd', {
+        'adId': _adId,
+      });
     } on PlatformException catch (e) {
       // Native refuses some shows outright — no foreground Activity on
       // Android, an ad that is not ready — by failing the call rather than
@@ -70,8 +72,9 @@ abstract class InMobiFullScreenAd {
     _disposed = true;
     InMobiAdsPlatform.unregisterAd(_adId);
     try {
-      await InMobiAdsPlatform.channel
-          .invokeMethod<void>('disposeAd', {'adId': _adId});
+      await InMobiAdsPlatform.channel.invokeMethod<void>('disposeAd', {
+        'adId': _adId,
+      });
     } on MissingPluginException {
       // No native side, so nothing native to release. This is also the path a
       // failed load takes on an unsupported platform, where throwing would
@@ -123,9 +126,8 @@ abstract class InMobiFullScreenAd {
 class InMobiRewardedAd extends InMobiFullScreenAd {
   InMobiRewardedAd._({
     required super.placementId,
-    required InMobiFullScreenAdLoadCallback<InMobiRewardedAd> loadCallback,
-  })  : _loadCallback = loadCallback,
-        super._();
+    required this._loadCallback,
+  }) : super._();
 
   final InMobiFullScreenAdLoadCallback<InMobiRewardedAd> _loadCallback;
 
@@ -193,21 +195,20 @@ class InMobiRewardedAd extends InMobiFullScreenAd {
 class InMobiInterstitialAd extends InMobiFullScreenAd {
   InMobiInterstitialAd._({
     required super.placementId,
-    required InMobiFullScreenAdLoadCallback<InMobiInterstitialAd> loadCallback,
-  })  : _loadCallback = loadCallback,
-        super._();
+    required this._loadCallback,
+  }) : super._();
 
   final InMobiFullScreenAdLoadCallback<InMobiInterstitialAd> _loadCallback;
 
   /// Events for an ad that has loaded. Set this before calling [show].
   InMobiFullScreenContentCallback<InMobiInterstitialAd>?
-      fullScreenContentCallback;
+  fullScreenContentCallback;
 
   /// Requests an interstitial ad for [placementId].
   static void load({
     required int placementId,
     required InMobiFullScreenAdLoadCallback<InMobiInterstitialAd>
-        adLoadCallback,
+    adLoadCallback,
   }) {
     ensureInitialized('interstitial ad');
     unawaited(
@@ -253,8 +254,10 @@ void _dispatchContentEvent<T extends InMobiFullScreenAd>(
     case 'displayed':
       callback.onAdShowedFullScreenContent?.call(ad);
     case 'displayFailed':
-      callback.onAdFailedToShowFullScreenContent
-          ?.call(ad, InMobiAdError.fromMap(arguments));
+      callback.onAdFailedToShowFullScreenContent?.call(
+        ad,
+        InMobiAdError.fromMap(arguments),
+      );
     case 'dismissed':
       callback.onAdDismissedFullScreenContent?.call(ad);
     case 'impression':

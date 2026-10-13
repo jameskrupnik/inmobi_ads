@@ -12,12 +12,12 @@ Future<void> emitAdEvent(
 ]) {
   return TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .handlePlatformMessage(
-    'inmobi_ads',
-    const StandardMethodCodec().encodeMethodCall(
-      MethodCall('onAdEvent', {...extra, 'adId': adId, 'event': event}),
-    ),
-    (_) {},
-  );
+        'inmobi_ads',
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall('onAdEvent', {...extra, 'adId': adId, 'event': event}),
+        ),
+        (_) {},
+      );
 }
 
 /// Resets the plugin's process-wide state, records every outgoing call into
@@ -28,8 +28,8 @@ Future<void> setUpInMobiChannel(List<MethodCall> log) async {
   InMobiAds.instance.debugReset();
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
-    log.add(call);
-    return null;
-  });
+        log.add(call);
+        return null;
+      });
   await InMobiAds.instance.initialize(accountId: 'test-account');
 }
