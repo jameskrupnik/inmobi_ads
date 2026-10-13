@@ -3,6 +3,7 @@ package com.jameskrupnik.inmobi_ads
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import com.inmobi.ads.AdMetaInfo
 import com.inmobi.ads.InMobiAdRequestStatus
 import com.inmobi.ads.InMobiBanner
@@ -46,6 +47,10 @@ internal class InMobiBannerPlatformView(
     private val adId = (params["adId"] as? Number)?.toInt() ?: -1
     private val banner: InMobiBanner?
 
+    // Always present, so getView() never returns null — a missing placement id
+    // still gives Flutter an empty view to lay out rather than nothing at all.
+    private val container = FrameLayout(context)
+
     init {
         val placementId = (params["placementId"] as? Number)?.toLong()
         val density = context.resources.displayMetrics.density
@@ -87,14 +92,18 @@ internal class InMobiBannerPlatformView(
                 // display-size change or on a second display. Stating the size
                 // in dp leaves nothing to derive.
                 setBannerSize(widthDp.roundToInt(), heightDp.roundToInt())
-                load()
             }
+        }
+        banner?.let {
+            container.addView(it)
+            it.load()
         }
     }
 
-    override fun getView(): View? = banner
+    override fun getView(): View = container
 
     override fun dispose() {
+        container.removeAllViews()
         banner?.destroy()
     }
 
