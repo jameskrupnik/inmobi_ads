@@ -14,9 +14,9 @@ integrated directly against the native SDKs with no mediation layer.
   s.source_files     = 'inmobi_ads/Sources/inmobi_ads/**/*.swift'
 
   s.dependency 'Flutter'
-  # 11.4.x, the API surface the native code is written against. Keep in step
-  # with the range in inmobi_ads/Package.swift.
-  s.dependency 'InMobiSDK', '~> 11.4.1'
+  # Exactly 11.4.1, the version the native code is written against. Keep in
+  # step with inmobi_ads/Package.swift and android/build.gradle.
+  s.dependency 'InMobiSDK', '11.4.1'
 
   s.platform = :ios, '13.0'
   s.static_framework = true

@@ -170,9 +170,8 @@ If your app already pins any of those, expect to reconcile versions.
 Deployment target 13.0. Both CocoaPods and Swift Package Manager work: the
 plugin depends on InMobi's `InMobiSDK` pod or on their official
 [`InMobiSDK-Swift-Package`](https://github.com/InMobi/InMobiSDK-Swift-Package),
-whichever your app uses, pinned to 11.4.x in both. InMobi's SPM README asks for
-`-ObjC` in Other Linker Flags; the framework it ships is dynamic, so a Flutter
-app does not need it.
+whichever your app uses. InMobi's SPM README asks for `-ObjC` in Other Linker
+Flags; the framework it ships is dynamic, so a Flutter app does not need it.
 
 Add InMobi's **SKAdNetwork identifiers** to your `Info.plist` or you lose
 install attribution — InMobi publishes the current list in their iOS
@@ -183,6 +182,11 @@ initializing.
 
 Rewarded, interstitial and banner, against InMobi SDK 11.4.1 on Android and
 iOS. Native ads and InMobi's own mediation are not covered.
+
+The SDK is pinned to exactly 11.4.1 on Android, CocoaPods and Swift Package
+Manager alike, so every app gets the version the native code was checked
+against. If your app needs a different InMobi version, override the
+dependency in your own build and expect to test it.
 
 ## License
 
