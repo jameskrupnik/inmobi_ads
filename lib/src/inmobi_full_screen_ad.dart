@@ -51,8 +51,15 @@ abstract class InMobiFullScreenAd {
       return;
     }
     _shown = true;
-    await InMobiAdsPlatform.channel
-        .invokeMethod<void>('showFullScreenAd', {'adId': _adId});
+    try {
+      await InMobiAdsPlatform.channel
+          .invokeMethod<void>('showFullScreenAd', {'adId': _adId});
+    } on PlatformException catch (e) {
+      // Native refuses some shows outright — no foreground Activity on
+      // Android, an ad that is not ready — by failing the call rather than
+      // sending an event. Route it where a caller already listens.
+      _handleEvent('displayFailed', {'code': e.code, 'message': e.message});
+    }
   }
 
   /// Releases the native ad. Call it once you are done, in every path.
@@ -69,6 +76,10 @@ abstract class InMobiFullScreenAd {
       // No native side, so nothing native to release. This is also the path a
       // failed load takes on an unsupported platform, where throwing would
       // turn an orderly load failure into an unhandled async error.
+    } on PlatformException {
+      // Native could not find or release the ad. Either way there is nothing
+      // left for the caller to clean up, and dispose() is often unawaited from
+      // a callback, where a throw would be an unhandled async error.
     }
   }
 

@@ -102,6 +102,50 @@ void main() {
       );
     });
 
+    test('a show native refuses reaches onAdFailedToShowFullScreenContent',
+        () async {
+      late InMobiInterstitialAd ad;
+      InMobiInterstitialAd.load(
+        placementId: 7,
+        adLoadCallback: InMobiFullScreenAdLoadCallback(
+          onAdLoaded: (loaded) => ad = loaded,
+          onAdFailedToLoad: (_) => fail('should not fail'),
+        ),
+      );
+      await emit(0, 'loaded');
+      InMobiAdError? error;
+      ad.fullScreenContentCallback = InMobiFullScreenContentCallback(
+        onAdFailedToShowFullScreenContent: (_, e) => error = e,
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
+        throw PlatformException(code: 'NO_ACTIVITY', message: 'gone');
+      });
+
+      await ad.show();
+
+      expect(error!.code, 'NO_ACTIVITY');
+      expect(error!.message, 'gone');
+    });
+
+    test('dispose tolerates a native error', () async {
+      late InMobiInterstitialAd ad;
+      InMobiInterstitialAd.load(
+        placementId: 7,
+        adLoadCallback: InMobiFullScreenAdLoadCallback(
+          onAdLoaded: (loaded) => ad = loaded,
+          onAdFailedToLoad: (_) => fail('should not fail'),
+        ),
+      );
+      await emit(0, 'loaded');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(InMobiAdsPlatform.channel, (call) async {
+        throw PlatformException(code: 'INVALID_ARGUMENTS');
+      });
+
+      await expectLater(ad.dispose(), completes);
+    });
+
     test('a missing plugin surfaces as a load failure', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(InMobiAdsPlatform.channel, null);
