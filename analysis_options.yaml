@@ -29,11 +29,10 @@ linter:
   rules:
     # --- Off, with reasons -------------------------------------------------
 
-    # These are apps, not published packages. A doc comment on every public
-    # member buys a wall of `/// The name.` restatements, which is the
-    # opposite of readable — and it would drown the comments in these repos
-    # that are genuinely worth reading.
-    public_member_api_docs: false
+    # `public_member_api_docs` is deliberately NOT turned off here, unlike in
+    # the apps that share this file: this is a published package, and pub.dev
+    # renders these docs as its API reference, where an undocumented public
+    # member is a blank entry. The base set keeps it on.
 
     # **This rule breaks `math.max`/`math.min` and it broke five apps here.**
     # Rewriting `math.max(0.0, x)` to `math.max(0, x)` selects the `num`
